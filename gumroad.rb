@@ -5,10 +5,10 @@ module Gumroad
   API_ROOT = "https://gumroad.com/api/v1/"
 
   class Client
-    # via http://snippets.dzone.com/posts/show/11121
     class << self
       attr_accessor :token, :password
 
+      # via http://snippets.dzone.com/posts/show/11121
       def symbolize_keys arg
         case arg
         when Array
