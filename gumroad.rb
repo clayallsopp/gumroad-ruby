@@ -112,7 +112,7 @@ module Gumroad
     end
 
     def self.create(params)
-      Link.new(Client.post("links", params))
+      Link.new(Client.post("links", params)[:link])
     end
 
     def initialize(params = {})
