@@ -74,7 +74,7 @@ module Gumroad
     end
   end
 
-  class Link
+  class Dirtyable
     def self.dirty_attr(*args)
       @dirty_attrs = args
       dirty_attrs = "@dirty_attrs"
@@ -97,7 +97,9 @@ module Gumroad
     def dirty?(field)
       @dirty_attrs.member? field 
     end
+  end
 
+  class Link < Dirtyable
     attr_reader :id, :currency, :short_url
     # too much fun not to do
     dirty_attr :name, :url, :description
