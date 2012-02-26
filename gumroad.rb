@@ -132,6 +132,15 @@ module Gumroad
       Link.new(Client.post("links", params)[:link])
     end
 
+    def self.destroy(id)
+      Client.delete("links/#{id}")
+      true # still not sure if this is appropriate?
+    end
+
+    def destroy
+      Link.destroy(self.id)
+    end
+
     def initialize(params = {})
       @dirty_attrs = []
       load(params)
@@ -159,15 +168,6 @@ module Gumroad
         load(Client.put("links/#{self.id}", params)[:link])
       end
       self
-    end
-
-    def self.destroy(id)
-      Client.delete("links/#{id}")
-      true # still not sure if this is appropriate?
-    end
-
-    def destroy
-      Link.destroy(self.id)
     end
 
     # need to do some custom validation for price=
