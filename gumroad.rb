@@ -33,15 +33,15 @@ module Gumroad
         URI.parse(self.url(route))
       end
 
-      # method is string
-      def authed_request(uri, method, params = {})
-        klass = method.capitalize
+      # _method is string
+      def authed_request(uri, _method, params = {})
+        klass = _method.capitalize
 
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
 
         request = Net::HTTP::const_get(klass).new(uri.request_uri)
-        request.set_form_data(params) if method != "get"
+        request.set_form_data(params) if _method != "get"
         if @token and @password
           request.basic_auth(@token, @password)
         end
@@ -59,10 +59,10 @@ module Gumroad
 
       # Client handles functions of the form
       # Client.[method](resource, params = {})
-      def method_missing(method, *args, &block)
-        if [:post, :delete, :put].member? method
-          return authed_request(self.uri(args[0]), method.to_s, args[1]) if args.length == 2
-          return authed_request(self.uri(args[0]), method.to_s, {}) if args.length == 1
+      def method_missing(_method, *args, &block)
+        if [:post, :delete, :put].member? _method
+          return authed_request(self.uri(args[0]), _method.to_s, args[1]) if args.length == 2
+          return authed_request(self.uri(args[0]), _method.to_s, {}) if args.length == 1
         else
           super
         end
