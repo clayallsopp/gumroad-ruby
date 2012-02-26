@@ -45,7 +45,7 @@ module Gumroad
         response = http.request(request)
         rep = symbolize_keys(JSON.parse(response.body))
         if !rep[:success]
-          raise "GumroadError: #{rep[:error][:message] || rep[:message] || 'No message found.'}"
+          raise GumroadError, "#{(rep && (rep[:error] && rep[:error][:message]) || rep[:message]) || 'No message found.'}"
         end
         rep
       end
@@ -146,7 +146,7 @@ module Gumroad
 
     def self.destroy(id)
       Client.delete("links/#{id}")
-      nil
+      true
     end
 
     def destroy
@@ -193,6 +193,10 @@ module Gumroad
 
     def logout
       Client.delete("sessions")
+      true
     end
+  end
+
+  class GumroadError < StandardError
   end
 end
