@@ -7,6 +7,8 @@ module Gumroad
   class Client
     # via http://snippets.dzone.com/posts/show/11121
     class << self
+      attr_accessor :token, :password
+
       def symbolize_keys arg
         case arg
         when Array
@@ -62,14 +64,6 @@ module Gumroad
       def get(route, params = {})
         route += "?".concat(params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))
         authed_request(self.uri(route), "get", {})
-      end
-
-      def token=(token)
-        @token = token
-      end
-
-      def password=(password)
-        @password = password
       end
     end
   end
