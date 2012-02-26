@@ -117,6 +117,10 @@ module Gumroad
 
     def initialize(params = {})
       @dirty_attrs = []
+      load(params)
+    end
+
+    def load(params = {})
       ivars = self.methods - Object.methods
       params.each do |k, v|
         if ivars.member? k
@@ -132,15 +136,10 @@ module Gumroad
     end
 
     def save
-      if @dirty_attrs.length == 0
-        # Nothing to save! Hooray!
-      else
+      if @dirty_attrs.length > 0
         params = {}
         @dirty_attrs.each {|d| params[d] = self.send(d)}
-        Client.put("links/#{self.id}", params)
-        # run PUT request
-        # get data back
-        @dirty_attrs = []
+        load(Client.put("links/#{self.id}", params)[:link])
       end
       self
     end
