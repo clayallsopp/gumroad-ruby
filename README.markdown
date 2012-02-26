@@ -22,7 +22,7 @@ A fun little Ruby binding for the Gumroad API.
     => #<Gumroad::Link @price=299, @short_url="https://gumroad.com/l/HEk", ...>
 
     u.links
-    => #<Gumroad::Link @price=299, @short_url="https://gumroad.com/l/HEk", ...>
+    => [#<Gumroad::Link @price=299, @short_url="https://gumroad.com/l/HEk", ...>]
 
     Gumroad::Link.destroy("HEk") # or l.destroy
     => true
