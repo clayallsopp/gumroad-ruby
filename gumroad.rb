@@ -36,22 +36,29 @@ module Gumroad
       # method is string
       def authed_request(uri, method, params = {})
         klass = method.capitalize
+
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
+
         request = Net::HTTP::const_get(klass).new(uri.request_uri)
         request.set_form_data(params) if method != "get"
         if @token and @password
-          # do stuff
           request.basic_auth(@token, @password)
         end
+
         response = http.request(request)
+        # symbolize all hash keys (recursively)
         rep = symbolize_keys(JSON.parse(response.body))
+
         if !rep[:success]
           raise GumroadError, "#{(rep && (rep[:error] && rep[:error][:message]) || rep[:message]) || 'No message found.'}"
         end
+
         rep
       end
 
+      # Client handles functions of the form
+      # Client.[method](resource, params = {})
       def method_missing(method, *args, &block)
         if [:post, :delete, :put].member? method
           return authed_request(self.uri(args[0]), method.to_s, args[1]) if args.length == 2
@@ -62,12 +69,20 @@ module Gumroad
       end
 
       def get(route, params = {})
+        # if we do a get, turn it's params into a query.
         route += "?".concat(params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))
         authed_request(self.uri(route), "get", {})
       end
     end
   end
 
+  # One could simply -walk into Mordor- send all the Link attributes
+  # in the PUT request, regardless of whether they've actually changed,
+  # but I wanted to a) be able to find out which attributes are dirty
+  # and b) have a cleaner HTTP request.
+
+  # There might be a better pattern to track this, but this ivar business
+  # came to mind first so I went with it.
   class Dirtyable
     def self.dirty_attr(*args)
       @dirty_attrs = args
@@ -88,16 +103,22 @@ module Gumroad
       end
     end
 
+    # Takes a symbol
+    # ie link.dirty? :name
     def dirty?(field)
       @dirty_attrs.member? field 
     end
   end
 
   class Link < Dirtyable
+    # According to the API spec, these can't be changed
     attr_reader :id, :currency, :short_url
-    # too much fun not to do
+
     dirty_attr :name, :url, :description
-    attr_reader :price # is actually dirtyable as well, but needs custom validation
+    # Price is actually dirtyable as well, but we do custom validation
+    # perhaps dirty_attr could take some :validation callback? but it seemed
+    # like way too much fun to do that for only one field
+    attr_reader :price
 
     def self.find_all
       Client.get("links")[:links].collect {|l| Link.new(l)}
@@ -142,7 +163,7 @@ module Gumroad
 
     def self.destroy(id)
       Client.delete("links/#{id}")
-      true
+      true # still not sure if this is appropriate?
     end
 
     def destroy
@@ -156,14 +177,17 @@ module Gumroad
       if price.is_a? Float and price % 1 != 0
         raise "Invalid price #{price}: must be whole-number integer"
       end
+
       begin
         p_int = Integer(price)
       rescue Exception => e
         raise "Invalid price #{price}: must be whole-number integer"
       end
+
       if p_int < 0
         raise "Invalid price #{price}: must be positive"
       end
+
       (@dirty_attrs << :price).uniq!
       @price = p_int
       return p_int
@@ -173,6 +197,8 @@ module Gumroad
   class Session
     attr_reader :email, :password
 
+    # Currently sessions only take an email and password, so didn't
+    # see fit to do a initialize(params) quite yet.
     def initialize(email, password)
       @email = email
       @password = password
